@@ -1,0 +1,21 @@
+version: "3.1"
+rules:
+  - rule: Greet user
+    steps:
+      - intent: greet
+      - action: utter_greet
+
+  - rule: Respond to goodbye
+    steps:
+      - intent: goodbye
+      - action: utter_goodbye
+
+  - rule: Handle assistance request
+    steps:
+      - intent: ask_for_assistance
+      - action: action_ask_for_assistance
+
+  - rule: Handle fallback
+    steps:
+      - intent: fallback
+      - action: action_default_fallback
