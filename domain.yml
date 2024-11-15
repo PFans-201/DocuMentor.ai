@@ -1,0 +1,56 @@
+version: "3.1"
+intents:
+  - greet
+  - goodbye
+  - recommend_table_of_contents
+  - make_quick_quiz
+  - analyze_database
+  - study_topic
+  - prepare_exam
+  - ask_for_assistance
+
+entities:
+  - topic
+  - database
+  - document_title
+
+slots:
+  topic:
+    type: text
+  database:
+    type: text
+  document_title:
+    type: text
+
+responses:
+  utter_greet:
+    - text: "Hello! How can I assist you today?"
+
+  utter_goodbye:
+    - text: "Goodbye! Have a great day!"
+
+  utter_recommend_table_of_contents:
+    - text: "Here is the table of contents you requested."
+
+  utter_make_quick_quiz:
+    - text: "Let's create a quick quiz for you."
+
+  utter_analyze_database:
+    - text: "Analyzing the database now."
+
+  utter_study_topic:
+    - text: "Here is some guidance on the topic."
+
+  utter_prepare_exam:
+    - text: "Let's get started with your exam preparation."
+
+  utter_default_fallback:
+    - text: "I'm sorry, I didn't understand that."
+
+actions:
+  - action_ask_for_assistance
+  - action_recommend_table_of_contents
+  - action_make_quick_quiz
+  - action_analyze_database
+  - action_study_topic
+  - action_prepare_exam

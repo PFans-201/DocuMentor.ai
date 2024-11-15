@@ -1,0 +1,43 @@
+version: "3.1"
+stories:
+  - story: Greet and ask for assistance
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - intent: ask_for_assistance
+      - action: action_ask_for_assistance
+
+  - story: Recommend table of contents
+    steps:
+      - intent: recommend_table_of_contents
+      - action: action_recommend_table_of_contents
+
+  - story: Make a quick quiz
+    steps:
+      - intent: make_quick_quiz
+      - action: action_make_quick_quiz
+
+  - story: Analyze database
+    steps:
+      - intent: analyze_database
+      - action: action_analyze_database
+
+  - story: Study topic
+    steps:
+      - intent: study_topic
+      - action: action_study_topic
+
+  - story: Prepare exam
+    steps:
+      - intent: prepare_exam
+      - action: action_prepare_exam
+
+  - story: Handle affirmations
+    steps:
+      - intent: affirm
+      - action: utter_affirm
+
+  - story: Handle denials
+    steps:
+      - intent: deny
+      - action: utter_deny
