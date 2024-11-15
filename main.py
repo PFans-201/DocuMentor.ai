@@ -1,247 +1,144 @@
+import sys
 import os
-from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QVBoxLayout, QPushButton,
-    QFileDialog, QMessageBox, QDialog, QLabel, QLineEdit, QInputDialog, QWidget
-)
-from PyPDF2 import PdfReader
-import nltk
-from nltk.tokenize import word_tokenize
-from nltk.probability import FreqDist
-from PyDictionary import PyDictionary
-from collections import defaultdict
+import PyPDF2
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTextEdit, QPushButton, QVBoxLayout, QWidget, QHBoxLayout
+from PyQt5.QtCore import Qt
 from rasa.core.agent import Agent
-from rasa.core.interpreter import RasaNLUInterpreter
-import nlpaug.augmenter.word as naw
 import requests
+import nlpaug.augmenter.word as naw
+from PyDictionary import PyDictionary
 
-# Ensure NLTK packages are downloaded
-nltk.download('popular', quiet=True)
-
-class RasaChatbot:
-    '''A class representing a Rasa chatbot.'''
-
-    def __init__(self, model_directory):
-        '''
-        Initialize the RasaChatbot.
-
-        Args:
-            model_directory (str): Path to the directory containing the Rasa chatbot model.
-        '''
-        self.interpreter = RasaNLUInterpreter(model_directory)
-        self.agent = Agent.load(model_directory, interpreter=self.interpreter)
-
-    def get_response(self, message):
-        '''
-        Get the response from the Rasa chatbot for a given message.
-
-        Args:
-            message (str): Input message.
-
-        Returns:
-            str: Response from the Rasa chatbot.
-        '''
-        responses = self.agent.handle_text(message)
-        return responses[0]['text']
-
-class NLPAugRephraser:
-    '''A class representing a NLPAug rephraser.'''
-
-    def __init__(self):
-        '''Initialize the NLPAugRephraser'''
-        self.aug = naw.SynonymAug(aug_src='wordnet')
-
-    def rephrase(self, text):
-        '''
-        Rephrase the given text.
-
-        Args:
-            text (str): Input text to be rephrased.
-
-        Returns:
-            str: Rephrased text.
-        '''
-        return self.aug.augment(text)
-
-class MyMemoryTranslator:
-    '''A class representing a MyMemory translator.'''
-
-    def translate(self, text, source_lang, target_lang):
-        '''
-        Translate the given text from source language to target language using MyMemory translator API.
-
-        Args:
-            text (str): Text to be translated.
-            source_lang (str): Source language code.
-            target_lang (str): Target language code.
-
-        Returns:
-            str: Translated text.
-        '''
-        url = f"https://api.mymemory.translated.net/get?q={text}&langpair={source_lang}|{target_lang}"
-        response = requests.get(url)
-        data = response.json()
-        return data['responseData']['translatedText']
+# Set up the path for the Rasa chatbot model
+MODEL_PATH = 'models/dialogue/2024-11-15-12-30-00.tar.gz'  # Specify the path to the trained model
+dictionary = PyDictionary()
 
 class PDFManager:
-    '''A class representing a PDF manager.'''
-
+    """
+    PDF Manager handles PDF file uploads, keyword searches, summarization, and definitions.
+    """
     def __init__(self):
-        '''Initialize the PDFManager.'''
-        self.pdf_files = []
-        self.pdf_contents = defaultdict(str)
+        self.pdf_text = ""
 
-    def upload_pdf(self, file_path: str):
-        '''
-        Upload a PDF file and store its contents.
-
-        Args:
-            file_path (str): Path to the PDF file.
-        '''
-        self.pdf_files.append(file_path)
-        self.pdf_contents[file_path] = self.read_pdf(file_path)
-
-    def read_pdf(self, file_path: str):
-        '''
-        Read the contents of a PDF file.
-
-        Args:
-            file_path (str): Path to the PDF file.
-
-        Returns:
-            str: Contents of the PDF file.
-        '''
+    def upload_pdf(self, file_path):
+        """Upload and read PDF file."""
         with open(file_path, 'rb') as file:
-            pdf_reader = PdfReader(file)
+            pdf_reader = PyPDF2.PdfReader(file)
             text = ""
             for page_num in range(len(pdf_reader.pages)):
                 page = pdf_reader.pages[page_num]
                 text += page.extract_text()
-        return text
+            self.pdf_text = text
 
-    def summarize_pdf(self, file_path: str, num_sentences: int = 3):
-        '''
-        Summarize the contents of a PDF file.
+    def search_keyword(self, keyword):
+        """Search for keywords in the PDF text."""
+        matches = []
+        lines = self.pdf_text.split("\n")
+        for line in lines:
+            if keyword.lower() in line.lower():
+                matches.append(line)
+        return matches
 
-        Args:
-            file_path (str): Path to the PDF file.
-            num_sentences (int): Number of sentences for the summary.
+    def summarize_pdf(self):
+        """Generate a summary of the PDF text."""
+        lines = self.pdf_text.split("\n")
+        summary = "\n".join(lines[:5])  # Simple summary (first 5 lines)
+        return summary
 
-        Returns:
-            str: Summary of the PDF file contents.
-        '''
-        text = self.pdf_contents[file_path]
-        sentences = text.split('. ')
-        summarized_text = '. '.join(sentences[:num_sentences]) + '.'
-        return summarized_text
+    def get_definition(self, word):
+        """Get definition for a word using PyDictionary."""
+        definition = dictionary.meaning(word)
+        return definition
 
-    def search_keywords(self, user_input: str):
-        '''
-        Search for keywords in the PDF files.
 
-        Args:
-            user_input (str): Keyword to search for.
+class RasaChatbot:
+    """
+    RasaChatbot integrates the Rasa chatbot to handle user interactions.
+    """
+    def __init__(self, model_path):
+        """Initialize the RasaChatbot with the trained model."""
+        self.agent = Agent.load(model_path)
 
-        Returns:
-            dict: Dictionary containing PDF file paths and matching sentences.
-        '''
-        definitions = {}
-        for file_path, content in self.pdf_contents.items():
-            if user_input.lower() in content.lower():
-                sentences = [sentence + '.' for sentence in content.split('. ') if user_input.lower() in sentence.lower()]
-                definitions[file_path] = ' '.join(sentences)
-        return definitions
+    def get_response(self, message):
+        """Get the response from the Rasa chatbot for a given message."""
+        responses = self.agent.handle_text(message)
+        return responses[0]['text'] if responses else "Sorry, I didn't understand that."
 
-    def get_definitions(self, terms: list):
-        '''
-        Get definitions for terms using PyDictionary.
 
-        Args:
-            terms (list): List of terms to get definitions for.
-
-        Returns:
-            dict: Dictionary containing terms and their definitions.
-        '''
-        dictionary = PyDictionary()
-        definitions = {}
-        for term in terms:
-            definition = dictionary.meaning(term)
-            if definition:
-                formatted_definition = ', '.join(definition.get('Noun', ['No definition found']))
-                definitions[term] = formatted_definition
-            else:
-                definitions[term] = "No definition found"
-        return definitions
-
-class PDFManagerApp(QMainWindow):
-    '''A class representing the PDF Manager application.'''
-
-    def __init__(self, rasa_bot_path):
-        '''
-        Initialize the PDFManagerApp.
-
-        Args:
-            rasa_bot_path (str): Path to the Rasa chatbot model directory.
-        '''
+class MainWindow(QMainWindow):
+    """
+    Main window for the PyQt5 application.
+    """
+    def __init__(self):
         super().__init__()
+        self.setWindowTitle("PDF and Chatbot Manager")
+        self.setGeometry(100, 100, 800, 600)
 
-        self.setWindowTitle("PDF Manager")
+        # Create a layout and widgets
+        self.layout = QVBoxLayout()
+        self.text_display = QTextEdit(self)
+        self.text_display.setReadOnly(True)
+        self.layout.addWidget(self.text_display)
 
         self.pdf_manager = PDFManager()
-        self.rasa_chatbot = RasaChatbot(rasa_bot_path)
-        self.nlpaug_rephraser = NLPAugRephraser()
-        self.mymemory_translator = MyMemoryTranslator()
+        self.chatbot = RasaChatbot(MODEL_PATH)
 
-        layout = QVBoxLayout()
+        # Buttons for PDF actions
+        self.upload_button = QPushButton("Upload PDF", self)
+        self.upload_button.clicked.connect(self.upload_pdf)
+        self.layout.addWidget(self.upload_button)
 
-        upload_button = QPushButton("Upload PDFs and Summarize")
-        upload_button.clicked.connect(self.upload_and_summarize)
-        layout.addWidget(upload_button)
+        self.summary_button = QPushButton("Summarize PDF", self)
+        self.summary_button.clicked.connect(self.summarize_pdf)
+        self.layout.addWidget(self.summary_button)
 
-        explain_button = QPushButton("Explain a Keyword or Concept")
-        explain_button.clicked.connect(self.ask_for_explanation)
-        layout.addWidget(explain_button)
+        self.keyword_button = QPushButton("Search Keyword", self)
+        self.keyword_button.clicked.connect(self.search_keyword)
+        self.layout.addWidget(self.keyword_button)
 
-        central_widget = QWidget()
-        central_widget.setLayout(layout)
-        self.setCentralWidget(central_widget)
+        self.chat_button = QPushButton("Chat with Bot", self)
+        self.chat_button.clicked.connect(self.chat_with_bot)
+        self.layout.addWidget(self.chat_button)
 
-    def upload_and_summarize(self):
-        '''Upload PDF files and summarize their contents.'''
-        folder_path = QFileDialog.getExistingDirectory(self, "Select Directory")
-        if folder_path:
-            for file_name in os.listdir(folder_path):
-                if file_name.endswith('.pdf'):
-                    pdf_path = os.path.join(folder_path, file_name)
-                    self.pdf_manager.upload_pdf(pdf_path)
-                    summary = self.pdf_manager.summarize_pdf(pdf_path)
-                    QMessageBox.information(self, "Summary", f"Summary for {file_name}:\n{summary}")
+        # Set the main widget
+        container = QWidget()
+        container.setLayout(self.layout)
+        self.setCentralWidget(container)
 
-    def ask_for_explanation(self):
-        '''Ask for user input and provide explanations.'''
-        keyword, ok = QInputDialog.getText(self, "Input", "Enter the keyword or concept you need help with:")
+    def upload_pdf(self):
+        """Handle PDF upload action."""
+        options = QFileDialog.Options()
+        file_path, _ = QFileDialog.getOpenFileName(self, "Upload PDF", "", "PDF Files (*.pdf)", options=options)
+        if file_path:
+            self.pdf_manager.upload_pdf(file_path)
+            self.text_display.setText(f"Uploaded PDF: {file_path}\n\n{self.pdf_manager.pdf_text[:1000]}...")  # Show a preview
+
+    def summarize_pdf(self):
+        """Handle PDF summarization."""
+        summary = self.pdf_manager.summarize_pdf()
+        self.text_display.setText(f"Summary:\n\n{summary}")
+
+    def search_keyword(self):
+        """Handle keyword search in the PDF."""
+        keyword, ok = QInputDialog.getText(self, "Search Keyword", "Enter keyword:")
         if ok and keyword:
-            definitions = self.pdf_manager.search_keywords(keyword)
-            if definitions:
-                message = f"{keyword} found in the following documents:\n\n"
-                message += '\n'.join([f"{file_path}: {definition}" for file_path, definition in definitions.items()])
-                QMessageBox.information(self, "Explanation", message)
+            matches = self.pdf_manager.search_keyword(keyword)
+            if matches:
+                self.text_display.setText(f"Keyword matches:\n\n" + "\n".join(matches))
             else:
-                definition = self.pdf_manager.get_definitions([keyword])
-                QMessageBox.information(self, "Explanation", f"{keyword}: {definition[keyword]}")
+                self.text_display.setText(f"No matches found for '{keyword}'.")
 
-            rasa_response = self.rasa_chatbot.get_response(keyword)
-            QMessageBox.information(self, "Rasa Chatbot Response", rasa_response)
+    def chat_with_bot(self):
+        """Handle chat interaction with Rasa chatbot."""
+        user_input, ok = QInputDialog.getText(self, "Chat with Bot", "You:")
+        if ok and user_input:
+            bot_response = self.chatbot.get_response(user_input)
+            self.text_display.setText(f"You: {user_input}\nBot: {bot_response}")
 
-            rephrased_text = self.nlpaug_rephraser.rephrase(keyword)
-            QMessageBox.information(self, "Rephrased Text", rephrased_text)
-
-            translated_text = self.mymemory_translator.translate(keyword, 'en', 'pt')
-            QMessageBox.information(self, "Translated Text", translated_text)
-
-
-if __name__ == "__main__":
-    import sys
+def main():
     app = QApplication(sys.argv)
-    window = PDFManagerApp('/path/to/your/rasa_bot_model_directory')
+    window = MainWindow()
     window.show()
     sys.exit(app.exec_())
+
+if __name__ == '__main__':
+    main()
