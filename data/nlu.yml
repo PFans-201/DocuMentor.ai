@@ -1,0 +1,82 @@
+version: "3.1"
+nlu:
+  - intent: greet
+    examples: |
+      - hello
+      - hi
+      - hey
+      - good morning
+      - good evening
+      - howdy
+
+  - intent: goodbye
+    examples: |
+      - bye
+      - goodbye
+      - see you later
+      - take care
+      - catch you later
+
+  - intent: ask_for_assistance
+    examples: |
+      - I need help
+      - Can you assist me?
+      - Please help
+      - I want to learn something
+      - I need assistance
+      - Help me with a topic
+
+  - intent: recommend_table_of_contents
+    examples: |
+      - Suggest a table of contents
+      - What topics should I include?
+      - Recommend sections for a document
+      - Help me create a table of contents
+
+  - intent: analyze_database
+    examples: |
+      - Analyze my database
+      - Can you check my database?
+      - Look into my data
+      - Study my database
+
+  - intent: make_quick_quiz
+    examples: |
+      - Create a quick quiz
+      - I need a quiz
+      - Can you make a quiz for me?
+      - Generate a test
+
+  - intent: study_topic
+    examples: |
+      - Help me study
+      - I want to study [biology](topic)
+      - Guide me through [AI concepts](topic)
+      - I want to understand [Python](topic)
+
+  - intent: prepare_exam
+    examples: |
+      - Help me prepare for an exam
+      - I have an exam coming up
+      - Assist me in exam preparation
+
+  - intent: affirm
+    examples: |
+      - yes
+      - sure
+      - absolutely
+      - correct
+      - of course
+
+  - intent: deny
+    examples: |
+      - no
+      - not really
+      - nope
+      - never
+
+  - intent: fallback
+    examples: |
+      - I don't understand
+      - What do you mean?
+      - Can you clarify?
