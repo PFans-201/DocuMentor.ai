@@ -7,7 +7,7 @@ This is a PyQt5-based desktop application designed to integrate multiple advance
 Here is an overview of the directory structure for the app:
 
 <pre>
-    project/
+    DocuMentor_ai/
 ├── actions/                          # Custom actions for the chatbot
 │   ├── actions.py                    # All actions, including Translate, Rephrase, SummarizePDF, etc.
 │   └── utils/                        # Utility functions for actions
