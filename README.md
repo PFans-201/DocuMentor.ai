@@ -20,6 +20,7 @@ Here is an overview of the directory structure for the app:
 │   └── rules.yml                    # Rasa rule-based dialogue handling
 ├── models/                           # Rasa dialogue models (trained models)
 │   └── dialogue/                    # Trained dialogue models
+│       └── <model_name>.tar.gz   # Trained Rasa model file
 ├── config.yml                        # Bot pipeline and policies configuration
 ├── domain.yml                        # Bot domain configuration
 ├── endpoints.yml                     # Rasa endpoints for API interaction
