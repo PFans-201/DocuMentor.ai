@@ -94,5 +94,5 @@ Given the significant advancements in LLMs for conversational AI, I decided to a
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/PFans-201/DocuMentor.ai/blob/main/LICENSE) file for details.
 
