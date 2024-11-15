@@ -12,15 +12,15 @@ Here is an overview of the directory structure for the app:
 │   ├── actions.py                    # All actions, including Translate, Rephrase, SummarizePDF, etc.
 │   └── utils/                        # Utility functions for actions
 │       ├── mymemory_translator.py    # Translator logic using MyMemory API
-│       ├── nlpaug_rephraser.py      # Text rephraser using NLP-Augment
-│       └── pdf_manager.py           # PDF file management logic
+│       ├── nlpaug_rephraser.py       # Text rephraser using NLP-Augment
+│       └── pdf_manager.py            # PDF file management logic
 ├── data/                             # Training data for the Rasa chatbot
-│   ├── nlu.yml                      # NLU training data for Rasa chatbot
-│   ├── stories.yml                  # Stories for Rasa dialogue management
-│   └── rules.yml                    # Rasa rule-based dialogue handling
+│   ├── nlu.yml                       # NLU training data for Rasa chatbot
+│   ├── stories.yml                   # Stories for Rasa dialogue management
+│   └── rules.yml                     # Rasa rule-based dialogue handling
 ├── models/                           # Rasa dialogue models (trained models)
-│   └── dialogue/                    # Trained dialogue models
-│       └── <model_name>.tar.gz   # Trained Rasa model file
+│   └── dialogue/                     # Trained dialogue models
+│       └── <model_name>.tar.gz       # Trained Rasa model file
 ├── config.yml                        # Bot pipeline and policies configuration
 ├── domain.yml                        # Bot domain configuration
 ├── endpoints.yml                     # Rasa endpoints for API interaction
